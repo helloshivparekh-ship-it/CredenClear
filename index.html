@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CredenClear | Intelligent COI Compliance Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>CredenClear</h1>
+                    <span>AI Compliance Engine</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-tab="rules">
+                    <i class="fa-solid fa-sliders"></i> Compliance Rules
+                </a>
+                <a href="#" class="nav-item" data-tab="samples">
+                    <i class="fa-solid fa-folder-open"></i> Sample Library
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <span class="status-dot pulsing"></span>
+                    <div>
+                        <small>Engine Status</small>
+                        <strong id="engine-model-label">Gemini 3.8 Flash</strong>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h2>Certificate of Insurance (COI) Audit</h2>
+                    <p>Automate ACORD 25 compliance review with enterprise AI vision & rules validation.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-export" class="btn btn-secondary" disabled>
+                        <i class="fa-solid fa-download"></i> Export JSON
+                    </button>
+                    <button id="btn-batch-demo" class="btn btn-primary">
+                        <i class="fa-solid fa-bolt"></i> Run Sample Batch
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content Tabs -->
+            <div class="tab-content active" id="tab-dashboard">
+                <!-- Top Metrics Row -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon bg-blue">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span id="stat-total" class="metric-value">0</span>
+                            <small>Total Audited</small>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon bg-green">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span id="stat-compliant" class="metric-value">0</span>
+                            <small>Compliant</small>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon bg-yellow">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span id="stat-review" class="metric-value">0</span>
+                            <small>Review Needed</small>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon bg-red">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div class="metric-info">
+                            <span id="stat-noncompliant" class="metric-value">0</span>
+                            <small>Non-Compliant</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload & Rules Control Section -->
+                <div class="control-section">
+                    <!-- Upload Dropzone -->
+                    <div class="upload-card">
+                        <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload COI PDF</h3>
+                        <div id="dropzone" class="dropzone">
+                            <i class="fa-solid fa-file-arrow-up drop-icon"></i>
+                            <h4>Drag & Drop your ACORD 25 PDF here</h4>
+                            <p>or browse your local files (Max 25MB)</p>
+                            <input type="file" id="file-input" accept=".pdf" hidden>
+                            <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">
+                                Browse Files
+                            </button>
+                        </div>
+                        <div id="selected-file-info" class="selected-file-info hidden">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span id="file-name-display">document.pdf</span>
+                            <button id="btn-remove-file" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Underwriting Rules Panel -->
+                    <div class="rules-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-sliders"></i> Policy Thresholds</h3>
+                            <button id="btn-reset-rules" class="btn-text">Reset Default</button>
+                        </div>
+                        <div class="rules-form">
+                            <div class="form-group">
+                                <label for="rule-gl-limit">Min. General Liability Limit ($)</label>
+                                <select id="rule-gl-limit" class="form-control">
+                                    <option value="500000">$500,000</option>
+                                    <option value="1000000" selected>$1,000,000 (Standard)</option>
+                                    <option value="2000000">$2,000,000</option>
+                                    <option value="5000000">$5,000,000</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="rule-addl-insr" checked>
+                                    <span>Require Additional Insured (ADDL INSR)</span>
+                                </label>
+                            </div>
+                            <div class="form-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="rule-subr-wvd">
+                                    <span>Require Subrogation Waived (SUBR WVD)</span>
+                                </label>
+                            </div>
+                            <div class="form-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="rule-workers-comp">
+                                    <span>Require Workers' Compensation</span>
+                                </label>
+                            </div>
+                            <button id="btn-audit" class="btn btn-primary btn-full" disabled>
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Compliance Audit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Table Section -->
+                <div class="results-section">
+                    <div class="section-header">
+                        <h3><i class="fa-solid fa-table-list"></i> Audit Ledger</h3>
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="table-search" placeholder="Search insured or producer...">
+                            </div>
+                            <button id="btn-clear-table" class="btn btn-outline btn-sm">Clear All</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="audit-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Insured / Contractor</th>
+                                    <th>Producer / Agency</th>
+                                    <th>GL Limit</th>
+                                    <th>Expiration</th>
+                                    <th>Addl Insr</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-tbody">
+                                <tr class="empty-row">
+                                    <td colspan="8">
+                                        <div class="empty-state">
+                                            <i class="fa-solid fa-folder-open"></i>
+                                            <p>No certificates audited yet. Upload a PDF or run a sample batch above.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules Tab -->
+            <div class="tab-content" id="tab-rules">
+                <div class="card-large">
+                    <h3>Compliance Policy Configuration</h3>
+                    <p>Configure default validation rules applied across all incoming Certificates of Insurance.</p>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <h4>Expiration Window</h4>
+                            <p>Certificates expiring within 30 days generate an active warning notification.</p>
+                        </div>
+                        <div class="setting-item">
+                            <h4>OCR Vision Precision</h4>
+                            <p>Powered by Gemini 3.8 Flash with 0.0 temperature for deterministic JSON extraction of checkbox states.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Samples Tab -->
+            <div class="tab-content" id="tab-samples">
+                <div class="card-large">
+                    <h3>Pre-loaded Sample Certificates</h3>
+                    <p>Click any sample document to instantly audit it against your current policy rules.</p>
+                    <div id="samples-grid" class="samples-grid">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Inspection Modal -->
+    <div id="inspection-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <span id="modal-status-badge" class="badge compliant">COMPLIANT</span>
+                    <h3 id="modal-insured-name">Insured Name</h3>
+                </div>
+                <button class="btn-close" id="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-preview-pane">
+                    <h4>Document Preview (ACORD 25)</h4>
+                    <div class="preview-img-container">
+                        <img id="modal-preview-img" src="" alt="COI Preview">
+                    </div>
+                </div>
+                <div class="modal-details-pane">
+                    <h4>Extracted Fields & Compliance Report</h4>
+                    
+                    <div class="report-section">
+                        <h5>Violations & Warnings</h5>
+                        <ul id="modal-violations-list" class="violations-list">
+                            <li class="no-issues"><i class="fa-solid fa-circle-check"></i> No compliance violations found.</li>
+                        </ul>
+                    </div>
+
+                    <div class="report-section">
+                        <h5>Extracted Insurance Parameters</h5>
+                        <div class="kv-grid" id="modal-kv-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-btn-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner-box">
+            <div class="spinner"></div>
+            <h3 id="loading-title">Analyzing COI with Gemini AI...</h3>
+            <p id="loading-subtitle">Inspecting checkboxes and verifying policy limits...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
