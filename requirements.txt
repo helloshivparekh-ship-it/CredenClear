@@ -6,3 +6,4 @@ supabase
 python-dotenv
 sqlalchemy
 psycopg2-binary
+pymupdf
