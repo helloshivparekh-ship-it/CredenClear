@@ -66,7 +66,15 @@ export default function App() {
       }
 
       const data: AuditRecord = await res.json();
-      addAuditRecord(data);
+    
+    // Create the local preview link and add it to the data
+    const recordWithPreview = {
+      ...data,
+      preview_image: URL.createObjectURL(file)
+    };
+    
+    // Save it to your table
+    addAuditRecord(recordWithPreview);
     } catch (err: any) {
       alert(`Audit Error: ${err.message}`);
     } finally {

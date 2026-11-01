@@ -11,8 +11,9 @@ interface InspectionModalProps {
 export const InspectionModal: React.FC<InspectionModalProps> = ({ record, isOpen, onClose }) => {
   if (!isOpen || !record) return null;
 
-const ext = record;
-const val = { status: record.compliance_status };
+  const ext = record;
+  const val = { status: record.compliance_status };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'COMPLIANT':
@@ -36,10 +37,10 @@ const val = { status: record.compliance_status };
     }
   };
 
-const allIssues = [
-  ...(record.violations || []).map((v: any) => ({ text: v, type: 'violation' })),
-  ...(record.warnings || []).map((w: any) => ({ text: w, type: 'warning' }))
-];
+  const allIssues = [
+    ...(record.violations || []).map((v: any) => ({ text: v, type: 'violation' })),
+    ...(record.warnings || []).map((w: any) => ({ text: w, type: 'warning' }))
+  ];
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
@@ -70,12 +71,19 @@ const allIssues = [
             <h4 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-400" /> Document Preview (ACORD 25)
             </h4>
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-center overflow-hidden h-[500px]">
-              <img
-                src={record.preview_image}
-                alt="COI Preview"
-                className="max-h-full max-w-full object-contain rounded shadow-md"
-              />
+            <div className="bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center overflow-hidden h-[500px]">
+              {record.preview_image ? (
+                <iframe
+                  src={`${record.preview_image}#toolbar=0&navpanes=0&view=FitH`}
+                  title="COI Preview"
+                  className="w-full h-full border-0 bg-white"
+                />
+              ) : (
+                <div className="text-slate-500 flex flex-col items-center">
+                  <FileText className="w-8 h-8 mb-2 opacity-50" />
+                  <p className="text-sm">No preview available</p>
+                </div>
+              )}
             </div>
           </div>
 
