@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://credenclear-api.onrender.com/api/:path*"
+      "source": "/api/(.*)",
+      "destination": "https://credenclear-api.onrender.com/$1"
     }
   ]
 }
