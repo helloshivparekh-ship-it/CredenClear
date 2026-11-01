@@ -55,7 +55,7 @@ export default function App() {
     formData.append('require_workers_comp', String(rules.workersComp));
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch('[https://credenclear-api.onrender.com/api/upload](https://credenclear-api.onrender.com/api/upload)', {
         method: 'POST',
         body: formData,
       });
