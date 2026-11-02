@@ -55,11 +55,10 @@ export default function App() {
     formData.append('require_workers_comp', String(rules.workersComp));
 
     try {
-      const res = await fetch('[https://credenclear-api.onrender.com/api/upload](https://credenclear-api.onrender.com/api/upload)', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('https://credenclear-api.onrender.com/api/upload', {
+  method: 'POST',
+  body: formData
+});
       if (!res.ok) {
         const errJson = await res.json();
         throw new Error(errJson.detail || 'Failed to process COI file.');
