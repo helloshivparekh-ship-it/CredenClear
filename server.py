@@ -52,6 +52,15 @@ def get_db():
 
 # --- 2. FastAPI Application ---
 app = FastAPI(title="CredenClear API", version="1.0.0")
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 client = genai.Client()
 
 BUSINESS_RULES = {
