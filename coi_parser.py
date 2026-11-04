@@ -52,11 +52,11 @@ def parse_coi(client: genai.Client, pdf_path: str) -> COIExtraction:
             prompt,
             types.Part.from_bytes(data=image_bytes, mime_type='image/png')
         ],
-        config={
-            'response_mime_type': 'application/json',
-            'response_schema': COIExtraction,
-            'temperature': 0.0
-        }
+      config=types.GenerateContentConfig(
+    response_mime_type="application/json",
+    response_schema=COIExtraction,
+    temperature=0.0
+)
     )
 
     return response.parsed
