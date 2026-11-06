@@ -47,7 +47,7 @@ def parse_coi(client: genai.Client, pdf_path: str) -> COIExtraction:
 
     # Use Gemini's structured output to enforce the Pydantic schema
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
+        model='gemini-3.8-flash',
         contents=[
             prompt,
             types.Part.from_bytes(data=image_bytes, mime_type='image/png')
