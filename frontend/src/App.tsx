@@ -32,7 +32,7 @@ export default function App() {
 
   const fetchSamples = async () => {
     try {
-      const res = await fetch('[https://credenclear-api.onrender.com/api/samples](https://credenclear-api.onrender.com/api/samples)');
+      const res = await fetch('(https://credenclear-api.onrender.com/api/samples)');
       const data = await res.json();
       if (data.samples) {
         setSamples(data.samples);
