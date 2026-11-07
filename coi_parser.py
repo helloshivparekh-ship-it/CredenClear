@@ -39,10 +39,12 @@ def parse_coi(client: genai.Client, pdf_path: str) -> COIExtraction:
     image_bytes = pdf_to_image_bytes(pdf_path)
 
     prompt = (
-        "You are an expert commercial insurance compliance officer. "
-        "Examine this Certificate of Insurance (ACORD 25 form). "
-        "Extract the requested fields accurately. Pay extreme attention to the tiny checkboxes "
-        "under ADDL INSR and SUBR WVD, as they are critical for legal compliance."
+    "You are an expert commercial insurance compliance officer. "
+    "Examine this Certificate of Insurance (ACORD 25 form). "
+    "Extract the requested fields accurately. "
+    "Specifically, look for limits like 'EACH OCCURRENCE', 'GENERAL AGGREGATE', and 'PRODUCTS-COMP/OP AGG'. "
+    "Also, ensure you accurately capture the 'POLICY EFF' and 'POLICY EXP' dates. "
+    "Pay extreme attention to the tiny checkboxes under ADDL INSR and SUBR WVD, as they are critical for legal compliance."
     )
 
     # Use Gemini's structured output to enforce the Pydantic schema
