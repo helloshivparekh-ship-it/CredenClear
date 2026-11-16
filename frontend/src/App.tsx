@@ -147,15 +147,28 @@ export default function App() {
                 <span>Input Document</span>
               </h3>
               
+              {/* Hidden native file input for Mac selector */}
+              <input 
+                id="real-file-input"
+                type="file" 
+                accept=".pdf" 
+                className="hidden" 
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleSimulateExtraction(e.target.files[0].name);
+                  }
+                }}
+              />
+
               <div 
-                onClick={() => handleSimulateExtraction("ACORD_25_Sample_Freight_Carrier.pdf")}
+                onClick={() => document.getElementById('real-file-input')?.click()}
                 className="border-2 border-dashed border-slate-700 hover:border-indigo-500/60 rounded-xl p-8 text-center cursor-pointer bg-slate-950/50 hover:bg-slate-800/30 transition-all group"
               >
                 <div className="h-12 w-12 rounded-full bg-indigo-600/10 text-indigo-400 mx-auto flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <FileText className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-medium text-slate-200">Click to process sample COI</p>
-                <p className="text-xs text-slate-500 mt-1">Supports ACORD 25 (2016/03 edition)</p>
+                <p className="text-sm font-medium text-slate-200">Click to upload ACORD 25 PDF</p>
+                <p className="text-xs text-slate-500 mt-1">Select any PDF from your Mac</p>
               </div>
 
               <div className="mt-6">
