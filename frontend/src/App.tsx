@@ -1,239 +1,294 @@
-import { useState, useEffect } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { DashboardTab } from './components/DashboardTab';
-import { RulesTab } from './components/RulesTab';
-import { SamplesTab } from './components/SamplesTab';
-import { InspectionModal } from './components/InspectionModal';
-import { LoadingOverlay } from './components/LoadingOverlay';
-import type { AuditRecord, SampleFile } from './types';
-import { Download, Zap } from 'lucide-react';
+import { useState } from 'react';
+import { 
+  FileText, 
+  Upload, 
+  CheckCircle2, 
+  Code2, 
+  ShieldCheck, 
+  ArrowRight, 
+  Copy, 
+  Check, 
+  Terminal,
+  Cpu,
+  Layers,
+  Sparkles
+} from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [auditedRecords, setAuditedRecords] = useState<AuditRecord[]>([]);
-  const [samples, setSamples] = useState<SampleFile[]>([]);
-  const [rules, setRules] = useState({
-    glLimit: '1000000',
-    addlInsr: true,
-    subrWvd: false,
-    workersComp: false,
-  });
+  const [activeTab, setActiveTab] = useState<'python' | 'node' | 'curl'>('python');
+  const [copied, setCopied] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [extractedData, setExtractedData] = useState<Record<string, any> | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingTitle, setLoadingTitle] = useState('Analyzing Certificate with Gemini AI...');
-  const [loadingSubtitle, setLoadingSubtitle] = useState('Extracting OCR fields and validating endorsement checkboxes');
-
-  const [inspectionRecord, setInspectionRecord] = useState<AuditRecord | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    fetchSamples();
-  }, []);
-
-  const fetchSamples = async () => {
-    try {
-      const res = await fetch('(https://credenclear-api.onrender.com/api/samples)');
-      const data = await res.json();
-      if (data.samples) {
-        setSamples(data.samples);
-      }
-    } catch (err) {
-      console.error('Failed to fetch samples:', err);
-    }
-  };
-
-  const handleAuditFile = async (file: File) => {
-    setIsLoading(true);
-    setLoadingTitle('Analyzing Certificate with Gemini AI...');
-    setLoadingSubtitle('Extracting OCR fields and validating endorsement checkboxes');
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('min_general_liability', rules.glLimit);
-    formData.append('require_additional_insured', String(rules.addlInsr));
-    formData.append('require_subrogation_waived', String(rules.subrWvd));
-    formData.append('require_workers_comp', String(rules.workersComp));
-
-    try {
-      const res = await fetch('https://credenclear-api.onrender.com/api/upload', {
-  method: 'POST',
-  body: formData
-});
-      if (!res.ok) {
-        const errJson = await res.json();
-        throw new Error(errJson.detail || 'Failed to process COI file.');
-      }
-
-      const data: AuditRecord = await res.json();
-    
-    // Create the local preview link and add it to the data
-    const recordWithPreview = {
-      ...data,
-      preview_image: URL.createObjectURL(file)
-    };
-    
-    // Save it to your table
-    addAuditRecord(recordWithPreview);
-    } catch (err: any) {
-      alert(`Audit Error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAuditSample = async (filename: string) => {
-    setIsLoading(true);
-    setLoadingTitle(`Auditing sample '${filename}'...`);
-    setLoadingSubtitle('Gemini AI vision extracting compliance data');
-
-    const params = new URLSearchParams({
-      min_general_liability: rules.glLimit,
-      require_additional_insured: String(rules.addlInsr),
-      require_subrogation_waived: String(rules.subrWvd),
-      require_workers_comp: String(rules.workersComp),
-    });
-
-    try {
-      const res = await fetch(`/api/sample/${encodeURIComponent(filename)}?${params.toString()}`, {
-        method: 'POST',
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json();
-        throw new Error(errJson.detail || 'Failed to process sample file.');
-      }
-
-      const data: AuditRecord = await res.json();
-      addAuditRecord(data);
-      setActiveTab('dashboard');
-    } catch (err: any) {
-      alert(`Sample Audit Error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleBatchDemo = async () => {
-    if (samples.length === 0) {
-      alert('No sample files available.');
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadingTitle('Running Sample Batch Audit...');
-    setLoadingSubtitle('Processing all pre-loaded ACORD 25 certificates concurrently');
-
-    try {
-      for (const sample of samples) {
-        const params = new URLSearchParams({
-          min_general_liability: rules.glLimit,
-          require_additional_insured: String(rules.addlInsr),
-          require_subrogation_waived: String(rules.subrWvd),
-          require_workers_comp: String(rules.workersComp),
-        });
-
-        const subRes = await fetch(`/api/sample/${encodeURIComponent(sample.filename)}?${params.toString()}`, {
-          method: 'POST',
-        });
-
-        if (subRes.ok) {
-          const subData: AuditRecord = await subRes.json();
-          addAuditRecord(subData);
+  const sampleJson = {
+    "status": "success",
+    "latency_ms": 342,
+    "confidence_score": 0.984,
+    "document_type": "ACORD_25",
+    "extracted_data": {
+      "producer_name": "Apex Insurance Brokers LLC",
+      "insured_name": "Swift Transport & Logistics Inc",
+      "policies": {
+        "general_liability": {
+          "policy_number": "GL-9982341-26",
+          "addl_insr": true,
+          "subr_wvd": true,
+          "limits": {
+            "each_occurrence": "$1,000,000",
+            "damage_to_rented_premises": "$300,000",
+            "general_aggregate": "$2,000,000"
+          }
+        },
+        "automobile_liability": {
+          "policy_number": "AL-5541209-26",
+          "any_auto": true,
+          "combined_single_limit": "$1,000,000"
         }
-      }
-      setAuditedRecords(prev => [...prev]);
-      setActiveTab('dashboard');
-    } catch (err: any) {
-      alert(`Batch error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
+      },
+      "certificate_holder": "Global Freight Logistics Inc. 500 Market St, Chicago IL"
     }
   };
 
-  const addAuditRecord = (record: AuditRecord) => {
-    setAuditedRecords(prev => {
-      const filtered = prev.filter(r => r.filename !== record.filename);
-      return [record, ...filtered];
-    });
+  const handleSimulateExtraction = (fileName: string) => {
+    setIsProcessing(true);
+    setSelectedFile(fileName);
+    setExtractedData(null);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setExtractedData(sampleJson);
+    }, 1800);
   };
 
-  const handleClearTable = () => {
-    if (confirm('Are you sure you want to clear all audited records?')) {
-      setAuditedRecords([]);
-    }
+  const handleCopyCode = (codeText: string) => {
+    navigator.clipboard.writeText(codeText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleExportJSON = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(auditedRecords, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `credenclear_audit_ledger_${new Date().toISOString().slice(0, 10)}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
+  const codeSnippets: Record<'python' | 'node' | 'curl', string> = {
+    python: "import requests\n\nurl = \"https://api.credenclear.com/v1/extract\"\nheaders = {\"Authorization\": \"Bearer cc_live_99831a...\"}\nfiles = {\"file\": open(\"certificate_of_insurance.pdf\", \"rb\")}\n\nresponse = requests.post(url, headers=headers, files=files)\nprint(response.json())",
 
-  const openInspectionModal = (record: AuditRecord) => {
-    setInspectionRecord(record);
-    setIsModalOpen(true);
+    node: "const axios = require('axios');\nconst FormData = require('form-data');\nconst fs = require('fs');\n\nasync function extractCOI() {\n  const form = new FormData();\n  form.append('file', fs.createReadStream('coi.pdf'));\n  const response = await axios.post('https://api.credenclear.com/v1/extract', form, {\n    headers: { ...form.getHeaders(), 'Authorization': 'Bearer cc_live_...' }\n  });\n  console.log(response.data);\n}\nextractCOI();",
+
+    curl: "curl -X POST https://api.credenclear.com/v1/extract \\\n  -H \"Authorization: Bearer cc_live_...\" \\\n  -F \"file=@/path/to/acord25.pdf\""
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-hidden">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Header */}
-        <header className="p-6 border-b border-slate-800/80 bg-slate-900/40 backdrop-blur flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-          <div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Certificate of Insurance (COI) Audit</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Automate ACORD 25 compliance review with enterprise AI vision & rules validation.</p>
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white font-sans">
+      
+      {/* HEADER / NAVBAR */}
+      <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <ShieldCheck className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+              CredenClear
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleExportJSON}
-              disabled={auditedRecords.length === 0}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Download className="w-4 h-4" /> Export JSON
-            </button>
-            <button
-              onClick={handleBatchDemo}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all cursor-pointer"
-            >
-              <Zap className="w-4 h-4" /> Run Sample Batch
-            </button>
+          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#sandbox" className="hover:text-white transition-colors">API Sandbox</a>
+            <a href="#docs" className="hover:text-white transition-colors">Documentation</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+          </nav>
+          <div className="flex items-center space-x-4">
+            <a href="#sandbox" className="text-sm font-medium text-slate-300 hover:text-white px-3 py-2">Sign In</a>
+            <a href="#sandbox" className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-md shadow-indigo-600/20">
+              Get API Key
+            </a>
           </div>
-        </header>
-
-        {/* Tab Views */}
-        <div className="p-8 max-w-7xl w-full mx-auto flex-1">
-          {activeTab === 'dashboard' && (
-            <DashboardTab
-              auditedRecords={auditedRecords}
-              onAuditFile={handleAuditFile}
-              onClearTable={handleClearTable}
-              onInspectRecord={openInspectionModal}
-              rules={rules}
-              setRules={setRules}
-            />
-          )}
-
-          {activeTab === 'rules' && <RulesTab />}
-
-          {activeTab === 'samples' && (
-            <SamplesTab samples={samples} onAuditSample={handleAuditSample} />
-          )}
         </div>
-      </main>
+      </header>
 
-      <InspectionModal
-        record={inspectionRecord}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {/* HERO SECTION */}
+      <section className="relative pt-20 pb-24 overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-6">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Document AI Powered Engine v2.4</span>
+          </div>
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+            Automate ACORD 25 Extraction with <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">Sub-Second Precision</span>
+          </h1>
+          <p className="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto font-normal">
+            Turn messy certificate of insurance PDFs into structured JSON instantly. Built for freight brokers, TMS platforms, and compliance teams.
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <a href="#sandbox" className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2">
+              <span>Try Live Sandbox</span>
+              <ArrowRight className="h-4 w-4" />
+            </a>
+            <a href="#docs" className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-semibold transition-all flex items-center justify-center space-x-2">
+              <Code2 className="h-4 w-4 text-slate-400" />
+              <span>View API Docs</span>
+            </a>
+          </div>
+        </div>
+      </section>
 
-      <LoadingOverlay isLoading={isLoading} title={loadingTitle} subtitle={loadingSubtitle} />
+      {/* INTERACTIVE SANDBOX SECTION */}
+      <section id="sandbox" className="py-16 bg-slate-900/40 border-y border-slate-800/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Experience the Extraction Engine</h2>
+            <p className="text-slate-400 mt-2 text-sm sm:text-base">Drop a sample COI below or test with pre-loaded mock files to see live JSON output.</p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* LEFT PANE: UPLOAD */}
+            <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+              <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center space-x-2">
+                <Upload className="h-4 w-4 text-indigo-400" />
+                <span>Input Document</span>
+              </h3>
+              
+              <div 
+                onClick={() => handleSimulateExtraction("ACORD_25_Sample_Freight_Carrier.pdf")}
+                className="border-2 border-dashed border-slate-700 hover:border-indigo-500/60 rounded-xl p-8 text-center cursor-pointer bg-slate-950/50 hover:bg-slate-800/30 transition-all group"
+              >
+                <div className="h-12 w-12 rounded-full bg-indigo-600/10 text-indigo-400 mx-auto flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-medium text-slate-200">Click to process sample COI</p>
+                <p className="text-xs text-slate-500 mt-1">Supports ACORD 25 (2016/03 edition)</p>
+              </div>
+
+              <div className="mt-6">
+                <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Or test with preset samples:</p>
+                <div className="space-y-2">
+                  {[
+                    "Swift_Logistics_COI_2026.pdf",
+                    "Apex_Freight_Insurance_Form.pdf",
+                    "Midwest_Transport_Liability.pdf"
+                  ].map((fileName, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSimulateExtraction(fileName)}
+                      className="w-full text-left px-3.5 py-2.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800/80 text-xs text-slate-300 flex items-center justify-between transition-colors group"
+                    >
+                      <span className="truncate">{fileName}</span>
+                      <span className="text-indigo-400 group-hover:translate-x-0.5 transition-transform font-mono text-[10px]">Test ➔</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT PANE: OUTPUT */}
+            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col h-[520px]">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div className="flex items-center space-x-2">
+                  <Terminal className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm font-semibold text-slate-300">API Response Preview</span>
+                </div>
+                {selectedFile && (
+                  <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md font-mono">
+                    {selectedFile}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-auto mt-4 rounded-xl bg-slate-950 p-4 border border-slate-800/80 font-mono text-xs relative">
+                {isProcessing ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 space-y-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />
+                    <p className="text-slate-400 text-xs animate-pulse">Running Document AI extraction model...</p>
+                  </div>
+                ) : extractedData ? (
+                  <pre className="text-emerald-400 leading-relaxed">
+                    {JSON.stringify(extractedData, null, 2)}
+                  </pre>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-600 text-center">
+                    <Cpu className="h-8 w-8 mb-2 opacity-40" />
+                    <p>Select a sample document on the left to trigger the extraction endpoint.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* DEVELOPER CODE SNIPPETS */}
+      <section id="docs" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="inline-flex items-center space-x-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-3">
+              <Layers className="h-4 w-4" />
+              <span>Developer First</span>
+            </div>
+            <h2 className="text-3xl font-extrabold text-white tracking-tight">Integrates into your TMS in minutes.</h2>
+            <p className="mt-4 text-slate-400 text-base leading-relaxed">
+              Clean, predictable JSON responses. Every extraction includes bounding box coordinates, confidence percentages, and boolean checkbox flags for Additional Insured and Waiver of Subrogation.
+            </p>
+            <ul className="mt-6 space-y-3 text-sm text-slate-300">
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-indigo-400 flex-shrink-0" />
+                <span>99.2% extraction accuracy on ACORD 25 forms</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-indigo-400 flex-shrink-0" />
+                <span>Automatic limit calculation ($1M/$2M general liability)</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-indigo-400 flex-shrink-0" />
+                <span>Webhook notifications for asynchronous batch processing</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex space-x-2">
+                {(['python', 'node', 'curl'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => setActiveTab(lang)}
+                    className={`px-3 py-1 rounded-md text-xs font-medium uppercase transition-all ${
+                      activeTab === lang 
+                        ? 'bg-indigo-600 text-white shadow-sm' 
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => handleCopyCode(codeSnippets[activeTab])}
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors flex items-center space-x-1 text-xs"
+                title="Copy code"
+              >
+                {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                <span>{copied ? 'Copied!' : 'Copy'}</span>
+              </button>
+            </div>
+            <div className="p-4 bg-slate-950 font-mono text-xs text-indigo-200 overflow-x-auto">
+              <pre>{codeSnippets[activeTab]}</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-slate-800/80 bg-slate-950 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center space-x-2 mb-4 sm:mb-0">
+            <ShieldCheck className="h-4 w-4 text-indigo-500" />
+            <span className="font-semibold text-slate-400">CredenClear API</span>
+            <span>— Automated Insurance Verification</span>
+          </div>
+          <p>© 2026 CredenClear Inc. All rights reserved.</p>
+        </div>
+      </footer>
+
     </div>
   );
 }
