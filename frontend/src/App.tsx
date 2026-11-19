@@ -191,7 +191,7 @@ export default function App() {
             </div>
 
             {/* RIGHT PANE: OUTPUT */}
-            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col h-[520px]">
+            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col min-h-[520px]">
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <div className="flex items-center space-x-2">
                   <Terminal className="h-4 w-4 text-emerald-400" />
