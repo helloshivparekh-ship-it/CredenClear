@@ -23,27 +23,25 @@ export default function App() {
 
   const sampleJson = {
     "status": "success",
-    "latency_ms": 342,
-    "confidence_score": 0.984,
-    "document_type": "ACORD_25",
+    "latency_ms": 385,
+    "confidence_score": 0.979,
+    "document_type": "ACORD_25_WITH_CARGO",
     "extracted_data": {
       "producer_name": "Apex Insurance Brokers LLC",
       "insured_name": "Swift Transport & Logistics Inc",
       "policies": {
         "general_liability": {
           "policy_number": "GL-9982341-26",
-          "addl_insr": true,
-          "subr_wvd": true,
           "limits": {
-            "each_occurrence": "$1,000,000",
-            "damage_to_rented_premises": "$300,000",
-            "general_aggregate": "$2,000,000"
+            "each_occurrence": "$1,000,000"
           }
         },
-        "automobile_liability": {
-          "policy_number": "AL-5541209-26",
-          "any_auto": true,
-          "combined_single_limit": "$1,000,000"
+        "motor_truck_cargo": {
+          "policy_number": "MTC-8832104-26",
+          "cargo_limit": "$100,000",
+          "deductible": "$1,000",
+          "reefer_exclusion": false,
+          "status": "ACTIVE"
         }
       },
       "certificate_holder": "Global Freight Logistics Inc. 500 Market St, Chicago IL"
