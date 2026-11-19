@@ -71,7 +71,7 @@ export default function App() {
 
     curl: "curl -X POST https://api.credenclear.com/v1/extract \\\n  -H \"Authorization: Bearer cc_live_...\" \\\n  -F \"file=@/path/to/acord25.pdf\""
   };
-
+      const cargoInfo = extractedData?.extracted_data?.policies?.motor_truck_cargo;
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white font-sans">
       
@@ -203,6 +203,32 @@ export default function App() {
                   </span>
                 )}
               </div>
+              {extractedData && cargoInfo && (
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl bg-slate-950 border border-indigo-500/30 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400">Cargo Limit</p>
+                    <p className="text-base font-bold text-indigo-400 mt-0.5">
+                      {cargoInfo.cargo_limit ?? 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-950 border border-amber-500/30 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400">Cargo Deductible</p>
+                    <p className="text-base font-bold text-amber-400 mt-0.5">
+                      {cargoInfo.deductible ?? 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-950 border border-emerald-500/30 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400">Policy & Status</p>
+                    <p className="text-xs font-mono font-semibold text-emerald-400 mt-1 truncate">
+                      {cargoInfo.policy_number ?? '—'} · {cargoInfo.status ?? '—'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex-1 overflow-auto mt-4 rounded-xl bg-slate-950 p-4 border border-slate-800/80 font-mono text-xs relative"></div>
 
               <div className="flex-1 overflow-auto mt-4 rounded-xl bg-slate-950 p-4 border border-slate-800/80 font-mono text-xs relative">
                 {isProcessing ? (
