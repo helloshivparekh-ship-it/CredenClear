@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { 
-  FileText, 
-  Upload, 
-  CheckCircle2, 
-  Code2, 
-  ShieldCheck, 
-  ArrowRight, 
-  Copy, 
-  Check, 
+import {
+  FileText,
+  Upload,
+  CheckCircle2,
+  Code2,
+  ShieldCheck,
+  ArrowRight,
+  Copy,
+  Check,
   Terminal,
   Cpu,
   Layers,
@@ -32,9 +32,18 @@ export default function App() {
       "policies": {
         "general_liability": {
           "policy_number": "GL-9982341-26",
+          "addl_insr": true,
+          "subr_wvd": true,
           "limits": {
-            "each_occurrence": "$1,000,000"
+            "each_occurrence": "$1,000,000",
+            "damage_to_rented_premises": "$300,000",
+            "general_aggregate": "$2,000,000"
           }
+        },
+        "automobile_liability": {
+          "policy_number": "AL-5541209-26",
+          "any_auto": true,
+          "combined_single_limit": "$1,000,000"
         },
         "motor_truck_cargo": {
           "policy_number": "MTC-8832104-26",
@@ -71,10 +80,12 @@ export default function App() {
 
     curl: "curl -X POST https://api.credenclear.com/v1/extract \\\n  -H \"Authorization: Bearer cc_live_...\" \\\n  -F \"file=@/path/to/acord25.pdf\""
   };
-      const cargoInfo = extractedData?.extracted_data?.policies?.motor_truck_cargo;
+
+  const cargoInfo = extractedData?.extracted_data?.policies?.motor_truck_cargo;
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white font-sans">
-      
+
       {/* HEADER / NAVBAR */}
       <header className="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -137,20 +148,19 @@ export default function App() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* LEFT PANE: UPLOAD */}
             <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
               <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4 flex items-center space-x-2">
                 <Upload className="h-4 w-4 text-indigo-400" />
                 <span>Input Document</span>
               </h3>
-              
-              {/* Hidden native file input for Mac selector */}
-              <input 
+
+              <input
                 id="real-file-input"
-                type="file" 
-                accept=".pdf" 
-                className="hidden" 
+                type="file"
+                accept=".pdf"
+                className="hidden"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
                     handleSimulateExtraction(e.target.files[0].name);
@@ -158,7 +168,7 @@ export default function App() {
                 }}
               />
 
-              <div 
+              <div
                 onClick={() => document.getElementById('real-file-input')?.click()}
                 className="border-2 border-dashed border-slate-700 hover:border-indigo-500/60 rounded-xl p-8 text-center cursor-pointer bg-slate-950/50 hover:bg-slate-800/30 transition-all group"
               >
@@ -191,7 +201,7 @@ export default function App() {
             </div>
 
             {/* RIGHT PANE: OUTPUT */}
-            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col min-h-[520px]">
+            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
               <div className="flex items-center justify-between pb-4 border-b border-slate-800">
                 <div className="flex items-center space-x-2">
                   <Terminal className="h-4 w-4 text-emerald-400" />
@@ -203,6 +213,7 @@ export default function App() {
                   </span>
                 )}
               </div>
+
               {extractedData && cargoInfo && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="rounded-xl bg-slate-950 border border-indigo-500/30 p-3">
@@ -228,20 +239,18 @@ export default function App() {
                 </div>
               )}
 
-              <div className="flex-1 overflow-auto mt-4 rounded-xl bg-slate-950 p-4 border border-slate-800/80 font-mono text-xs relative"></div>
-
-              <div className="flex-1 overflow-auto mt-4 rounded-xl bg-slate-950 p-4 border border-slate-800/80 font-mono text-xs relative">
+              <div className="mt-3 max-h-[360px] overflow-auto rounded-xl bg-slate-950 p-4 border border-slate-800/80 font-mono text-xs relative">
                 {isProcessing ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 space-y-3">
+                  <div className="py-20 flex flex-col items-center justify-center space-y-3">
                     <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent" />
                     <p className="text-slate-400 text-xs animate-pulse">Running Document AI extraction model...</p>
                   </div>
                 ) : extractedData ? (
-                  <pre className="text-emerald-400 leading-relaxed">
+                  <pre className="text-emerald-400 leading-relaxed m-0">
                     {JSON.stringify(extractedData, null, 2)}
                   </pre>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-600 text-center">
+                  <div className="py-20 flex flex-col items-center justify-center text-slate-600 text-center">
                     <Cpu className="h-8 w-8 mb-2 opacity-40" />
                     <p>Select a sample document on the left to trigger the extraction endpoint.</p>
                   </div>
@@ -289,8 +298,8 @@ export default function App() {
                     key={lang}
                     onClick={() => setActiveTab(lang)}
                     className={`px-3 py-1 rounded-md text-xs font-medium uppercase transition-all ${
-                      activeTab === lang 
-                        ? 'bg-indigo-600 text-white shadow-sm' 
+                      activeTab === lang
+                        ? 'bg-indigo-600 text-white shadow-sm'
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
