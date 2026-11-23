@@ -124,6 +124,8 @@ export default function App() {
   };
 
   const cargoInfo = extractedData?.extracted_data?.policies?.motor_truck_cargo;
+  const glInfo = extractedData?.extracted_data?.policies?.general_liability;
+  const alInfo = extractedData?.extracted_data?.policies?.automobile_liability;
   const alertStatus = extractedData?.alert_status;
   const expiringPolicies: Array<{
     policy_type: string;
@@ -334,6 +336,37 @@ export default function App() {
                       {cargoInfo.policy_number ?? '—'} · {cargoInfo.status ?? '—'}
                     </p>
                   </div>
+                </div>
+              )}
+              {extractedData && (glInfo || alInfo) && (
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {glInfo && (
+                    <div className="rounded-xl bg-slate-950 border border-cyan-500/30 p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                        General Liability (GL)
+                      </p>
+                      <p className="text-base font-bold text-cyan-400 mt-0.5">
+                        {glInfo.limits?.each_occurrence ?? 'N/A'} / {glInfo.limits?.general_aggregate ?? 'N/A'}
+                      </p>
+                      <p className="text-[11px] font-mono text-slate-400 mt-1 truncate">
+                        {glInfo.policy_number ?? '—'} · Exp {glInfo.expiration_date ?? '—'}
+                      </p>
+                    </div>
+                  )}
+
+                  {alInfo && (
+                    <div className="rounded-xl bg-slate-950 border border-violet-500/30 p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                        Automobile Liability (AL)
+                      </p>
+                      <p className="text-base font-bold text-violet-400 mt-0.5">
+                        {alInfo.combined_single_limit ?? 'N/A'}
+                      </p>
+                      <p className="text-[11px] font-mono text-slate-400 mt-1 truncate">
+                        {alInfo.policy_number ?? '—'} · Exp {alInfo.expiration_date ?? '—'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
