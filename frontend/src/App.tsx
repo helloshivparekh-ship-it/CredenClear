@@ -11,7 +11,8 @@ import {
   Terminal,
   Cpu,
   Layers,
-  Sparkles
+  Sparkles,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function App() {
@@ -123,6 +124,14 @@ export default function App() {
   };
 
   const cargoInfo = extractedData?.extracted_data?.policies?.motor_truck_cargo;
+  const alertStatus = extractedData?.alert_status;
+  const expiringPolicies: Array<{
+    policy_type: string;
+    policy_number: string;
+    expiration_date: string;
+    days_remaining: number;
+    status: string;
+  }> = alertStatus?.expiring_policies ?? [];
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white font-sans">
@@ -254,7 +263,55 @@ export default function App() {
                   </span>
                 )}
               </div>
+{extractedData && alertStatus && (
+                alertStatus.alert_needed && expiringPolicies.length > 0 ? (
+                  <div className="mt-4 rounded-xl bg-rose-950/40 border border-rose-500/40 p-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center space-x-2">
+                        <AlertTriangle className="h-4 w-4 text-rose-400 flex-shrink-0" />
+                        <span className="text-xs font-semibold text-rose-300 uppercase tracking-wider">
+                          {expiringPolicies.length} Expiration {expiringPolicies.length === 1 ? 'Alert' : 'Alerts'}
+                        </span>
+                      </div>
+                      {alertStatus.contact_lookup?.suggested_fallback && (
+                        <span className="text-[11px] font-mono text-rose-300/80">
+                          Contact: {alertStatus.contact_lookup.email || alertStatus.contact_lookup.suggested_fallback}
+                        </span>
+                      )}
+                    </div>
 
+                    <div className="mt-2.5 space-y-1.5">
+                      {expiringPolicies.map((policy, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between text-xs bg-slate-950/70 rounded-lg px-3 py-2 border border-slate-800/80"
+                        >
+                          <div className="truncate pr-2">
+                            <span className="font-semibold text-slate-200">{policy.policy_type}</span>
+                            <span className="text-slate-500 ml-2 font-mono">#{policy.policy_number}</span>
+                          </div>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase whitespace-nowrap ${
+                              policy.status === 'EXPIRED'
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            }`}
+                          >
+                            {policy.status === 'EXPIRED'
+                              ? `Expired (${Math.abs(policy.days_remaining)}d ago)`
+                              : `Expires in ${policy.days_remaining}d`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 flex items-center space-x-2 rounded-xl bg-emerald-950/30 border border-emerald-500/30 px-3.5 py-2.5 text-xs text-emerald-300">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                    <span>All extracted policies are active with no upcoming expirations.</span>
+                  </div>
+                )
+              )}
               {extractedData && cargoInfo && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="rounded-xl bg-slate-950 border border-indigo-500/30 p-3">
