@@ -17,6 +17,7 @@ from google import genai
 # Import your extraction and validation routines
 from batch_runner import parse_coi, validate_coi
 from Rules_Validation import validate_extraction
+from expiration_alerts import process_expiration_alert
 
 # --- 1. Database Configuration ---
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -199,6 +200,7 @@ async def extract_coi(file: UploadFile = File(...)) -> dict[str, Any]:
 
     payload["latency_ms"] = round((time.perf_counter() - start_time) * 1000)
     payload["validation"] = validate_extraction(payload)
+    payload["alert_status"] = process_expiration_alert(payload)
     return payload
 
 
