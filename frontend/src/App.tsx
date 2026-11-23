@@ -28,10 +28,13 @@ export default function App() {
     "document_type": "ACORD_25_WITH_CARGO",
     "extracted_data": {
       "producer_name": "Apex Insurance Brokers LLC",
+      "producer_email": null,
       "insured_name": "Swift Transport & Logistics Inc",
+      "insured_email": null,
       "policies": {
         "general_liability": {
           "policy_number": "GL-9982341-26",
+          "expiration_date": "2027-06-15",
           "addl_insr": true,
           "subr_wvd": true,
           "limits": {
@@ -42,11 +45,13 @@ export default function App() {
         },
         "automobile_liability": {
           "policy_number": "AL-5541209-26",
+          "expiration_date": "2027-06-15",
           "any_auto": true,
           "combined_single_limit": "$1,000,000"
         },
         "motor_truck_cargo": {
           "policy_number": "MTC-8832104-26",
+          "expiration_date": "2027-04-01",
           "cargo_limit": "$100,000",
           "deductible": "$1,000",
           "reefer_exclusion": false,
@@ -54,6 +59,11 @@ export default function App() {
         }
       },
       "certificate_holder": "Global Freight Logistics Inc. 500 Market St, Chicago IL"
+    },
+    "validation": {
+      "passed": true,
+      "flags": [],
+      "expiring_soon": []
     }
   };
 
