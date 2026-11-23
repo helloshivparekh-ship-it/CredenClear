@@ -67,14 +67,45 @@ export default function App() {
     }
   };
 
-  const handleSimulateExtraction = (fileName: string) => {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
+  const handleSimulateExtraction = async (input: File | string) => {
+    const filename = typeof input === "string" ? input : input.name;
+
     setIsProcessing(true);
-    setSelectedFile(fileName);
+    setSelectedFile(filename);
     setExtractedData(null);
-    setTimeout(() => {
-      setIsProcessing(false);
+
+    if (typeof input === "string") {
+      setTimeout(() => {
+        setIsProcessing(false);
+        setExtractedData(sampleJson);
+      }, 1800);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", input);
+
+      const response = await fetch(`${API_BASE_URL}/v1/extract`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Request failed (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+      setExtractedData(data);
+    } catch (err) {
+      console.error("Extraction error:", err);
       setExtractedData(sampleJson);
-    }, 1800);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCopyCode = (codeText: string) => {
@@ -173,7 +204,7 @@ export default function App() {
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files && e.target.files[0]) {
-                    handleSimulateExtraction(e.target.files[0].name);
+                    handleSimulateExtraction(e.target.files[0]);
                   }
                 }}
               />
